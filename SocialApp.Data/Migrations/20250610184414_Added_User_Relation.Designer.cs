@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SocialApp.Data;
 
@@ -11,9 +12,11 @@ using SocialApp.Data;
 namespace SocialApp.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250610184414_Added_User_Relation")]
+    partial class Added_User_Relation
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,24 +24,6 @@ namespace SocialApp.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
-
-            modelBuilder.Entity("SocialApp.Data.Models.Like", b =>
-                {
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("PostId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Id")
-                        .HasColumnType("int");
-
-                    b.HasKey("UserId", "PostId");
-
-                    b.HasIndex("PostId");
-
-                    b.ToTable("Likes");
-                });
 
             modelBuilder.Entity("SocialApp.Data.Models.Post", b =>
                 {
@@ -94,25 +79,6 @@ namespace SocialApp.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("SocialApp.Data.Models.Like", b =>
-                {
-                    b.HasOne("SocialApp.Data.Models.Post", "Post")
-                        .WithMany("Likes")
-                        .HasForeignKey("PostId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("SocialApp.Data.Models.User", "User")
-                        .WithMany("Likes")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Post");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("SocialApp.Data.Models.Post", b =>
                 {
                     b.HasOne("SocialApp.Data.Models.User", "User")
@@ -124,15 +90,8 @@ namespace SocialApp.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("SocialApp.Data.Models.Post", b =>
-                {
-                    b.Navigation("Likes");
-                });
-
             modelBuilder.Entity("SocialApp.Data.Models.User", b =>
                 {
-                    b.Navigation("Likes");
-
                     b.Navigation("Posts");
                 });
 #pragma warning restore 612, 618

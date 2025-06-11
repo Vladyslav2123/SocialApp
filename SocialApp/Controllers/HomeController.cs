@@ -23,6 +23,7 @@ namespace SocialApp.Controllers
 
 			var allPosts = await _dbContext.Posts
 				.Include(p => p.User) // Include the User entity to get user details for each post
+				.Include(p => p.Likes) // Include Likes to get like counts and user likes
 				.OrderByDescending(p => p.CreatedAt) // Order posts by creation date, newest first
 				.ToListAsync();
 

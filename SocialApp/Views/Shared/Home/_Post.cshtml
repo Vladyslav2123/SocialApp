@@ -1,8 +1,9 @@
 ﻿@using System.Security.Claims;
 @model Post
 
-@{ 
-    int loggedInUserId = int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out int result) ? result : 0;
+@{
+    //int loggedInUserId = int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out int result) ? result : 0;
+    int loggedInUserId = 1; // Replace with actual user ID retrieval logic
 
     TimeSpan timeSpanSincePosted = DateTime.UtcNow.Subtract(Model.CreatedAt);
 
@@ -15,7 +16,7 @@
     };
 
     // bool isFavorited = Model.Favorites.Any(n => n.UserId == loggedInUserId);
-    // bool isLiked = Model.Likes.Any(n => n.UserId == loggedInUserId);
+     bool isLiked = Model.Likes.Any(n => n.UserId == loggedInUserId);
     // bool isPrivate = Model.IsPrivate == true && Model.UserId == loggedInUserId;
     // bool isReported = Model.Reports.Any(n => n.UserId == loggedInUserId);
 
@@ -92,7 +93,7 @@
 
 
     @* Icons *@
-    @* <div class="sm:p-4 p-2.5 flex items-center gap-4 text-xs font-semibold">
+     <div class="sm:p-4 p-2.5 flex items-center gap-4 text-xs font-semibold">
 
         <div class="flex items-center gap-2.5">
             <form asp-controller="Home" asp-action="TogglePostLike">
@@ -108,7 +109,7 @@
         </div>
 
 
-
+        @*
         <div class="flex items-center gap-3">
             <a class="button-icon">
                 <ion-icon class="text-lg" name="chatbubble-ellipses-outline"></ion-icon>

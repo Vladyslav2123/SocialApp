@@ -10,6 +10,7 @@ public class AppDbContext : DbContext
 	public DbSet<User> Users { get; set; } = null!;
 	public DbSet<Post> Posts { get; set; } = null!;
 	public DbSet<Like> Likes { get; set; } = null!;
+	public DbSet<Comment> Comments { get; set; } = null!;
 
 	protected override void OnModelCreating(ModelBuilder modelBuilder)
 	{
@@ -31,7 +32,20 @@ public class AppDbContext : DbContext
 			.HasOne(l => l.Post)
 			.WithMany(p => p.Likes)
 			.HasForeignKey(l => l.PostId)
-			.OnDelete(DeleteBehavior.Cascade);
+			.OnDelete(DeleteBehavior.NoAction);
+
+		// Comment entity configuration can be added here if needed
+		modelBuilder.Entity<Comment>()
+		   .HasOne(l => l.Post)
+		   .WithMany(p => p.Comments)
+		   .HasForeignKey(l => l.PostId)
+		   .OnDelete(DeleteBehavior.NoAction);
+
+		modelBuilder.Entity<Comment>()
+			.HasOne(l => l.User)
+		   .WithMany(u => u.Comments)
+		   .HasForeignKey(l => l.UserId)
+		   .OnDelete(DeleteBehavior.Restrict);
 
 		base.OnModelCreating(modelBuilder);
 	}

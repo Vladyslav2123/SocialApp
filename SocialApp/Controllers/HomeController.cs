@@ -133,5 +133,33 @@ namespace SocialApp.Controllers
 
 			return RedirectToAction("Index");
 		}
+
+		[HttpPost]
+		public async Task<IActionResult> TogglePostFavorite(PostFavoriteVM postFavoriteVM)
+		{
+			int userId = 1; // This should be replaced with the actual user ID from the authenticated user context
+			var existingFavorite = await _dbContext.Favorites
+				.FirstOrDefaultAsync(f => f.UserId == userId && f.PostId == postFavoriteVM.PostId);
+
+			if (existingFavorite != null)
+			{
+				// User has already favorited the post, so we remove the favorite
+				_dbContext.Favorites.Remove(existingFavorite);
+				await _dbContext.SaveChangesAsync();
+			}
+			else
+			{
+				// User has not favorited the post, so we add a new favorite
+				var newFavorite = new Favorite
+				{
+					UserId = userId,
+					PostId = postFavoriteVM.PostId
+				};
+				await _dbContext.Favorites.AddAsync(newFavorite);
+				await _dbContext.SaveChangesAsync();
+			}
+
+			return RedirectToAction("Index");
+		}
 	}
 }

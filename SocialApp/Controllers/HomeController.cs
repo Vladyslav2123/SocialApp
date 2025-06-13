@@ -21,7 +21,10 @@ namespace SocialApp.Controllers
 		{
 			_logger.LogInformation("Index action called in HomeController.");
 
+			int userId = 1; // This should be replaced with the actual user ID from the authenticated user context
+
 			var allPosts = await _dbContext.Posts
+				.Where(p => !p.IsPrivate || p.UserId == userId) // Fetch only public posts
 				.Include(p => p.User) // Include the User entity to get user details for each post
 				.Include(p => p.Likes) // Include Likes to get like counts and user likes
 				.Include(p => p.Comments).ThenInclude(n => n.User) // Include Comments to get comments for each post

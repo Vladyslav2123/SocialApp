@@ -25,6 +25,7 @@ namespace SocialApp.Controllers
 				.Include(p => p.User) // Include the User entity to get user details for each post
 				.Include(p => p.Likes) // Include Likes to get like counts and user likes
 				.Include(p => p.Comments).ThenInclude(n => n.User) // Include Comments to get comments for each post
+				.Include(p => p.Favorites) // Include Favorites to get favorite counts
 				.OrderByDescending(p => p.CreatedAt) // Order posts by creation date, newest first
 				.ToListAsync();
 
@@ -159,6 +160,22 @@ namespace SocialApp.Controllers
 				await _dbContext.SaveChangesAsync();
 			}
 
+			return RedirectToAction("Index");
+		}
+
+		[HttpPost]
+		public async Task<IActionResult> TogglePostVisibility(PostVisibilityVM postVisibilityVM)
+		{
+			int userId = 1; // This should be replaced with the actual user ID from the authenticated user context
+
+			var post = await _dbContext.Posts
+				.FirstOrDefaultAsync(p => p.Id == postVisibilityVM.PostId && p.UserId == userId);
+			if (post != null)
+			{
+				post.IsPrivate = !post.IsPrivate; // Toggle the visibility
+				post.UpdatedAt = DateTime.UtcNow; // Update the timestamp
+				await _dbContext.SaveChangesAsync();
+			}
 			return RedirectToAction("Index");
 		}
 	}

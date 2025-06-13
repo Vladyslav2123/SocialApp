@@ -13,6 +13,8 @@ public class Post
 
 	public int NrOfReports { get; set; }
 
+	public bool IsPrivate { get; set; } = false;
+
 	public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
 	public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;

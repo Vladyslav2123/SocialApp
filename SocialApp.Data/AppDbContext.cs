@@ -12,6 +12,7 @@ public class AppDbContext : DbContext
 	public DbSet<Like> Likes { get; set; } = null!;
 	public DbSet<Comment> Comments { get; set; } = null!;
 	public DbSet<Favorite> Favorites { get; set; } = null!;
+	public DbSet<Report> Reports { get; set; } = null!;
 
 	protected override void OnModelCreating(ModelBuilder modelBuilder)
 	{
@@ -62,6 +63,23 @@ public class AppDbContext : DbContext
 			.HasOne(f => f.Post)
 			.WithMany(p => p.Favorites)
 			.HasForeignKey(f => f.PostId)
+			.OnDelete(DeleteBehavior.NoAction);
+
+		// Report entity configuration can be added here if needed
+
+		modelBuilder.Entity<Report>()
+		   .HasKey(r => new { r.UserId, r.PostId });
+
+		modelBuilder.Entity<Report>()
+			.HasOne(r => r.User)
+			.WithMany(u => u.Reports)
+			.HasForeignKey(r => r.UserId)
+			.OnDelete(DeleteBehavior.Restrict);
+
+		modelBuilder.Entity<Report>()
+			.HasOne(r => r.Post)
+			.WithMany(p => p.Reports)
+			.HasForeignKey(r => r.PostId)
 			.OnDelete(DeleteBehavior.NoAction);
 
 		base.OnModelCreating(modelBuilder);

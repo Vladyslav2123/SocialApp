@@ -24,6 +24,7 @@ namespace SocialApp.Controllers
 			var allPosts = await _dbContext.Posts
 				.Include(p => p.User) // Include the User entity to get user details for each post
 				.Include(p => p.Likes) // Include Likes to get like counts and user likes
+				.Include(p => p.Comments).ThenInclude(n => n.User) // Include Comments to get comments for each post
 				.OrderByDescending(p => p.CreatedAt) // Order posts by creation date, newest first
 				.ToListAsync();
 
@@ -93,6 +94,40 @@ namespace SocialApp.Controllers
 					PostId = postLikeVM.PostId
 				};
 				await _dbContext.Likes.AddAsync(newLike);
+				await _dbContext.SaveChangesAsync();
+			}
+
+			return RedirectToAction("Index");
+		}
+
+		[HttpPost]
+		public async Task<IActionResult> AddPostComment(PostCommentVM postCommentVM)
+		{
+			int userId = 1; // This should be replaced with the actual user ID from the authenticated user context
+
+			var newComment = new Comment
+			{
+				Content = postCommentVM.Content,
+				UserId = userId,
+				PostId = postCommentVM.PostId,
+				CreateAt = DateTime.UtcNow,
+				UpdateAt = DateTime.UtcNow
+			};
+
+			await _dbContext.Comments.AddAsync(newComment);
+			await _dbContext.SaveChangesAsync();
+			return RedirectToAction("Index");
+		}
+
+		[HttpPost]
+		public async Task<IActionResult> RemovePostComment(RemoveCommentVM removeCommentVM)
+		{
+			var comment = await _dbContext.Comments
+				.FirstOrDefaultAsync(c => c.Id == removeCommentVM.CommentId);
+
+			if (comment != null)
+			{
+				_dbContext.Comments.Remove(comment);
 				await _dbContext.SaveChangesAsync();
 			}
 

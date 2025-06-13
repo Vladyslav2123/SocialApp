@@ -11,6 +11,7 @@ public class AppDbContext : DbContext
 	public DbSet<Post> Posts { get; set; } = null!;
 	public DbSet<Like> Likes { get; set; } = null!;
 	public DbSet<Comment> Comments { get; set; } = null!;
+	public DbSet<Favorite> Favorites { get; set; } = null!;
 
 	protected override void OnModelCreating(ModelBuilder modelBuilder)
 	{
@@ -46,6 +47,22 @@ public class AppDbContext : DbContext
 		   .WithMany(u => u.Comments)
 		   .HasForeignKey(l => l.UserId)
 		   .OnDelete(DeleteBehavior.Restrict);
+
+		// Favorite entity configuration can be added here if needed
+		modelBuilder.Entity<Favorite>()
+		   .HasKey(f => new { f.UserId, f.PostId });
+
+		modelBuilder.Entity<Favorite>()
+			.HasOne(f => f.User)
+			.WithMany(u => u.Favorites)
+			.HasForeignKey(f => f.UserId)
+			.OnDelete(DeleteBehavior.Restrict);
+
+		modelBuilder.Entity<Favorite>()
+			.HasOne(f => f.Post)
+			.WithMany(p => p.Favorites)
+			.HasForeignKey(f => f.PostId)
+			.OnDelete(DeleteBehavior.NoAction);
 
 		base.OnModelCreating(modelBuilder);
 	}

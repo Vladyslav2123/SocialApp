@@ -10,8 +10,8 @@ public static class DbInitializer
 		{
 			var users = new List<User>
 			{
-				new User { Fullname = "Alice Smith", ProfilePictureUrl = "https://example.com/alice.jpg" },
-				new User { Fullname = "Bob Johnson", ProfilePictureUrl = "https://example.com/bob.jpg" }
+				new User { FullName = "Alice Smith", ProfilePictureUrl = "https://example.com/alice.jpg" },
+				new User { FullName = "Bob Johnson", ProfilePictureUrl = "https://example.com/bob.jpg" }
 			};
 			await context.Users.AddRangeAsync(users);
 			await context.SaveChangesAsync();

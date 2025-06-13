@@ -18,7 +18,7 @@
      bool isFavorited = Model.Favorites.Any(n => n.UserId == loggedInUserId);
      bool isLiked = Model.Likes.Any(n => n.UserId == loggedInUserId);
      bool isPrivate = Model.IsPrivate == true && Model.UserId == loggedInUserId;
-    // bool isReported = Model.Reports.Any(n => n.UserId == loggedInUserId);
+     bool isReported = Model.Reports.Any(n => n.UserId == loggedInUserId);
 
     bool showAllComments = ViewData["ShowAllComment"] as bool? ?? false;
     bool showDetails = ViewData["ShowDetails"] as bool? ?? true;
@@ -59,7 +59,7 @@
                     </button>
                 }
 
-                @* @if (!isReported)
+                 @if (!isReported)
                 {
                     <form asp-controller="Home" asp-action="AddPostReport">
                         <input type="hidden" name="postId" value="@Model.Id" />
@@ -67,7 +67,7 @@
                             <ion-icon class="text-xl shrink-0" name="flag-outline"></ion-icon>  Report
                         </button>
                     </form>
-                } *@
+                }
 
             </div>
         </div>

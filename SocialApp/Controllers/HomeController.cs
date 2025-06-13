@@ -181,5 +181,22 @@ namespace SocialApp.Controllers
 			}
 			return RedirectToAction("Index");
 		}
+
+		[HttpPost]
+		public async Task<IActionResult> AddPostReport(PostReportVM postReportVM)
+		{
+			int userId = 1; // This should be replaced with the actual user ID from the authenticated user context
+
+			var newReport = new Report
+			{
+				UserId = userId,
+				PostId = postReportVM.PostId,
+				CreatedAt = DateTime.UtcNow,
+			};
+
+			await _dbContext.Reports.AddAsync(newReport);
+			await _dbContext.SaveChangesAsync();
+			return RedirectToAction("Index");
+		}
 	}
 }

@@ -24,7 +24,7 @@ namespace SocialApp.Controllers
 			int userId = 1; // This should be replaced with the actual user ID from the authenticated user context
 
 			var allPosts = await _dbContext.Posts
-				.Where(p => (!p.IsPrivate || p.UserId == userId) && p.Reports.Count < 5) // Fetch only public posts
+				.Where(p => (!p.IsPrivate || p.UserId == userId) && p.Reports.Count < 5 && !p.IsDeleted) // Fetch only public posts
 				.Include(p => p.User) // Include the User entity to get user details for each post
 				.Include(p => p.Likes) // Include Likes to get like counts and user likes
 				.Include(p => p.Comments).ThenInclude(n => n.User) // Include Comments to get comments for each post
@@ -197,6 +197,21 @@ namespace SocialApp.Controllers
 
 			await _dbContext.Reports.AddAsync(newReport);
 			await _dbContext.SaveChangesAsync();
+			return RedirectToAction("Index");
+		}
+
+		[HttpPost]
+		public async Task<IActionResult> PostRemove(RemovePostVM removePostVM)
+		{
+			int userId = 1; // This should be replaced with the actual user ID from the authenticated user context
+			var post = await _dbContext.Posts
+				.FirstOrDefaultAsync(p => p.Id == removePostVM.PostId && p.UserId == userId);
+			if (post != null)
+			{
+				post.IsDeleted = true; // Soft delete the post
+				_dbContext.Posts.Remove(post);
+				await _dbContext.SaveChangesAsync();
+			}
 			return RedirectToAction("Index");
 		}
 	}

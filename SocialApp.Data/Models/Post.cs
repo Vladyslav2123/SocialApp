@@ -19,6 +19,8 @@ public class Post
 
 	public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
+	public bool IsDeleted { get; set; } = false;
+
 	// Foreign key
 	public int UserId { get; set; }
 

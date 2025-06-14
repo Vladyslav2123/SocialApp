@@ -38,9 +38,7 @@
                     {
                         @foreach (var post in Model)
                         {
-                            <partial name="Home/_Post"
-                                     model="post"
-                                      />
+                            <partial name="Home/_Post" model="post"                                      />
                         }
                     }
                 </div>
@@ -63,4 +61,18 @@
 
 <partial name="Modals/_CreateStory" /> @* model="new StoryVM()" *@
 <partial name="Modals/_CreateStatus" model="new PostVM()" />
-@* <partial name="Home/_PostDeleteConfirmation" /> *@
+<partial name="Home/_PostDeleteConfirmation" />
+
+<script>
+    function openPostDeleteConfirmation(postId) {
+
+        UIKit.dropdown('.post-options-dropdown').hide();
+        document.getElementById('deleteConfirmationPostId').value = postId;
+        UIKit.modal('#postDeleteDialog').show();
+        // Logic to open a confirmation dialog for deleting the post
+        // This can be a custom modal or a simple alert
+        if (confirm("Are you sure you want to delete this post?")) {
+            document.querySelector(`form[action='/Home/DeletePost'][data-post-id='${postId}']`).submit();
+        }
+    }
+</script>

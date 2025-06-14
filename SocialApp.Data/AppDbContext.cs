@@ -5,7 +5,7 @@ namespace SocialApp.Data;
 
 public class AppDbContext : DbContext
 {
-	public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
+	public AppDbContext ( DbContextOptions<AppDbContext> options ) : base(options) { }
 
 	public DbSet<User> Users { get; set; } = null!;
 	public DbSet<Post> Posts { get; set; } = null!;
@@ -13,13 +13,19 @@ public class AppDbContext : DbContext
 	public DbSet<Comment> Comments { get; set; } = null!;
 	public DbSet<Favorite> Favorites { get; set; } = null!;
 	public DbSet<Report> Reports { get; set; } = null!;
+	public DbSet<Story> Stories { get; set; } = null!;
 
-	protected override void OnModelCreating(ModelBuilder modelBuilder)
+	protected override void OnModelCreating ( ModelBuilder modelBuilder )
 	{
 		modelBuilder.Entity<User>()
 			.HasMany(u => u.Posts)
 			.WithOne(p => p.User)
 			.HasForeignKey(p => p.UserId);
+
+		modelBuilder.Entity<User>()
+			.HasMany(u => u.Stories)
+			.WithOne(s => s.User)
+			.HasForeignKey(s => s.UserId);
 
 		modelBuilder.Entity<Like>()
 			.HasKey(l => new { l.UserId, l.PostId });
@@ -38,15 +44,15 @@ public class AppDbContext : DbContext
 
 		// Comment entity configuration can be added here if needed
 		modelBuilder.Entity<Comment>()
-		   .HasOne(l => l.Post)
+		   .HasOne(c => c.Post)
 		   .WithMany(p => p.Comments)
-		   .HasForeignKey(l => l.PostId)
+		   .HasForeignKey(c => c.PostId)
 		   .OnDelete(DeleteBehavior.NoAction);
 
 		modelBuilder.Entity<Comment>()
-			.HasOne(l => l.User)
+			.HasOne(c => c.User)
 		   .WithMany(u => u.Comments)
-		   .HasForeignKey(l => l.UserId)
+		   .HasForeignKey(c => c.UserId)
 		   .OnDelete(DeleteBehavior.Restrict);
 
 		// Favorite entity configuration can be added here if needed

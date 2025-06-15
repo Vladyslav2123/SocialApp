@@ -11,13 +11,13 @@ namespace SocialApp.Controllers
 		private readonly ILogger<HomeController> _logger;
 		private readonly AppDbContext _dbContext;
 
-		public HomeController(ILogger<HomeController> logger, AppDbContext dbContext)
+		public HomeController ( ILogger<HomeController> logger, AppDbContext dbContext )
 		{
 			_logger = logger;
 			_dbContext = dbContext;
 		}
 
-		public async Task<IActionResult> Index()
+		public async Task<IActionResult> Index ()
 		{
 			_logger.LogInformation("Index action called in HomeController.");
 
@@ -37,7 +37,7 @@ namespace SocialApp.Controllers
 		}
 
 		[HttpPost]
-		public async Task<IActionResult> CreatePost(PostVM post)
+		public async Task<IActionResult> CreatePost ( PostVM post )
 		{
 			int userId = 1; // This should be replaced with the actual user ID from the authenticated user context
 
@@ -57,7 +57,7 @@ namespace SocialApp.Controllers
 				string rootPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
 				if (post.Image.ContentType.Contains("image"))
 				{
-					string rootPathImage = Path.Combine(rootPath, "images");
+					string rootPathImage = Path.Combine(rootPath, "images/posts");
 					Directory.CreateDirectory(rootPathImage); // Ensure the directory exists
 
 					string fileName = $"{Guid.NewGuid()}_{post.Image.FileName}";
@@ -66,7 +66,7 @@ namespace SocialApp.Controllers
 					using (var fileStream = new FileStream(filePath, FileMode.Create))
 						await post.Image.CopyToAsync(fileStream);
 
-					newPost.ImageUrl = $"/images/{fileName}"; // Set the image URL for the post
+					newPost.ImageUrl = $"/images/posts/{fileName}"; // Set the image URL for the post
 				}
 			}
 
@@ -77,7 +77,7 @@ namespace SocialApp.Controllers
 		}
 
 		[HttpPost]
-		public async Task<IActionResult> TogglePostLike(PostLikeVM postLikeVM)
+		public async Task<IActionResult> TogglePostLike ( PostLikeVM postLikeVM )
 		{
 			int userId = 1; // This should be replaced with the actual user ID from the authenticated user context
 
@@ -106,7 +106,7 @@ namespace SocialApp.Controllers
 		}
 
 		[HttpPost]
-		public async Task<IActionResult> AddPostComment(PostCommentVM postCommentVM)
+		public async Task<IActionResult> AddPostComment ( PostCommentVM postCommentVM )
 		{
 			int userId = 1; // This should be replaced with the actual user ID from the authenticated user context
 
@@ -125,7 +125,7 @@ namespace SocialApp.Controllers
 		}
 
 		[HttpPost]
-		public async Task<IActionResult> RemovePostComment(RemoveCommentVM removeCommentVM)
+		public async Task<IActionResult> RemovePostComment ( RemoveCommentVM removeCommentVM )
 		{
 			var comment = await _dbContext.Comments
 				.FirstOrDefaultAsync(c => c.Id == removeCommentVM.CommentId);
@@ -140,7 +140,7 @@ namespace SocialApp.Controllers
 		}
 
 		[HttpPost]
-		public async Task<IActionResult> TogglePostFavorite(PostFavoriteVM postFavoriteVM)
+		public async Task<IActionResult> TogglePostFavorite ( PostFavoriteVM postFavoriteVM )
 		{
 			int userId = 1; // This should be replaced with the actual user ID from the authenticated user context
 			var existingFavorite = await _dbContext.Favorites
@@ -168,7 +168,7 @@ namespace SocialApp.Controllers
 		}
 
 		[HttpPost]
-		public async Task<IActionResult> TogglePostVisibility(PostVisibilityVM postVisibilityVM)
+		public async Task<IActionResult> TogglePostVisibility ( PostVisibilityVM postVisibilityVM )
 		{
 			int userId = 1; // This should be replaced with the actual user ID from the authenticated user context
 
@@ -184,7 +184,7 @@ namespace SocialApp.Controllers
 		}
 
 		[HttpPost]
-		public async Task<IActionResult> AddPostReport(PostReportVM postReportVM)
+		public async Task<IActionResult> AddPostReport ( PostReportVM postReportVM )
 		{
 			int userId = 1; // This should be replaced with the actual user ID from the authenticated user context
 
@@ -201,7 +201,7 @@ namespace SocialApp.Controllers
 		}
 
 		[HttpPost]
-		public async Task<IActionResult> PostRemove(RemovePostVM removePostVM)
+		public async Task<IActionResult> PostRemove ( RemovePostVM removePostVM )
 		{
 			int userId = 1; // This should be replaced with the actual user ID from the authenticated user context
 			var post = await _dbContext.Posts

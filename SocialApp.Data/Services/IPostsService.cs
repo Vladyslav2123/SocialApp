@@ -5,6 +5,8 @@ namespace SocialApp.Data.Services;
 public interface IPostsService
 {
 	Task<List<Post>> GetAllPostsAsync ( int loggedInUserId );
+	Task<List<Post>> GetAllFavoritedPostsAsync ( int loggedInUserId );
+
 	Task<Post> CreatePostAsync ( Post post );
 	Task<Post> RemovePostAsync ( int postId );
 

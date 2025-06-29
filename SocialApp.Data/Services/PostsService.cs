@@ -41,6 +41,23 @@ public class PostsService : IPostsService
 		return allPosts;
 	}
 
+	public async Task<List<Post>> GetAllFavoritedPostsAsync ( int loggedInUserId )
+	{
+		return await _context.Favorites
+				.Include(f => f.Post.Reports)
+				.Include(f => f.Post.User)
+				.Include(f => f.Post.Comments)
+					.ThenInclude(c => c.User)
+				.Include(f => f.Post.Likes)
+				.Include(f => f.Post.Favorites)
+				.Where(n => n.UserId == loggedInUserId &&
+					!n.Post.IsDeleted &&
+					n.Post.Reports.Count < 5)
+				.OrderByDescending(f => f.CreatedAt)
+				.Select(n => n.Post)
+				.ToListAsync();
+	}
+
 	public async Task<Post> RemovePostAsync ( int postId )
 	{
 		var post = await _context.Posts.FirstOrDefaultAsync(p => p.Id == postId);
@@ -97,7 +114,8 @@ public class PostsService : IPostsService
 			var newFavorite = new Favorite
 			{
 				UserId = userId,
-				PostId = postId
+				PostId = postId,
+				CreatedAt = DateTime.UtcNow
 			};
 			await _context.Favorites.AddAsync(newFavorite);
 			await _context.SaveChangesAsync();

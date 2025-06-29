@@ -18,6 +18,7 @@ builder.Services.AddScoped<IPostsService, PostsService>();
 builder.Services.AddScoped<IHashtagsService, HashtagsService>();
 builder.Services.AddScoped<IStoriesService, StoriesService>();
 builder.Services.AddScoped<IFilesService, FilesService>();
+builder.Services.AddScoped<IUserService, UsersService>();
 
 var app = builder.Build();
 
@@ -26,8 +27,8 @@ using (var scope = app.Services.CreateScope())
 {
 	var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
-	await dbContext.Database.MigrateAsync(); // Apply any pending migrations
-	await DbInitializer.SeedAsync(dbContext); // Seed the database with initial data
+	await dbContext.Database.MigrateAsync();
+	await DbInitializer.SeedAsync(dbContext);
 	if (dbContext.Database.EnsureCreated())
 	{
 		// Database was created, you can seed initial data here if needed

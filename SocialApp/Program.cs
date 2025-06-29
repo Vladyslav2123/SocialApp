@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using SocialApp.Data;
 using SocialApp.Data.Helpers;
+using SocialApp.Data.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,6 +12,12 @@ builder.Services.AddControllersWithViews();
 var connectionString = builder.Configuration.GetConnectionString("NewConnection");
 builder.Services.AddDbContext<AppDbContext>(options =>
 	options.UseSqlServer(connectionString));
+
+// Register other services as needed, e.g., for authentication, logging, etc.
+builder.Services.AddScoped<IPostsService, PostsService>();
+builder.Services.AddScoped<IHashtagsService, HashtagsService>();
+builder.Services.AddScoped<IStoriesService, StoriesService>();
+builder.Services.AddScoped<IFilesService, FilesService>();
 
 var app = builder.Build();
 

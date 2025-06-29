@@ -14,6 +14,7 @@ public class AppDbContext : DbContext
 	public DbSet<Favorite> Favorites { get; set; } = null!;
 	public DbSet<Report> Reports { get; set; } = null!;
 	public DbSet<Story> Stories { get; set; } = null!;
+	public DbSet<Hashtag> Hashtags { get; set; } = null!;
 
 	protected override void OnModelCreating ( ModelBuilder modelBuilder )
 	{

@@ -38,7 +38,7 @@
                     {
                         @foreach (var post in Model)
                         {
-                            <partial name="Home/_Post" model="post"                                      />
+                            <partial name="Home/_Post" model="post" />
                         }
                     }
                 </div>
@@ -52,7 +52,7 @@
                     @* @await Component.InvokeAsync("SuggestedFriends") *@
                 </div>
                 <div class="box p-5 px-6 border1">
-                    @* @await Component.InvokeAsync("Hashtags") *@
+                    @await Component.InvokeAsync("Hashtags")
                 </div>
             </div>
         </div>

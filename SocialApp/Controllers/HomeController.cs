@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using SocialApp.Data;
+using SocialApp.Data.Helpers.Enums;
 using SocialApp.Data.Models;
+using SocialApp.Data.Services;
 using SocialApp.ViewModels.Home;
 
 namespace SocialApp.Controllers
@@ -9,30 +9,26 @@ namespace SocialApp.Controllers
 	public class HomeController : Controller
 	{
 		private readonly ILogger<HomeController> _logger;
-		private readonly AppDbContext _dbContext;
+		private readonly IPostsService _postsService = null!;
+		private readonly IHashtagsService _hashtagsService = null!;
+		private readonly IFilesService _filesService = null!;
 
-		public HomeController ( ILogger<HomeController> logger, AppDbContext dbContext )
+		public HomeController (
+			ILogger<HomeController> logger,
+			IPostsService postsService,
+			IHashtagsService hashtagsService,
+			IFilesService filesService )
 		{
 			_logger = logger;
-			_dbContext = dbContext;
+			_postsService = postsService;
+			_hashtagsService = hashtagsService;
+			_filesService = filesService;
 		}
 
 		public async Task<IActionResult> Index ()
 		{
-			_logger.LogInformation("Index action called in HomeController.");
-
 			int userId = 1; // This should be replaced with the actual user ID from the authenticated user context
-
-			var allPosts = await _dbContext.Posts
-				.Where(p => (!p.IsPrivate || p.UserId == userId) && p.Reports.Count < 5 && !p.IsDeleted) // Fetch only public posts
-				.Include(p => p.User) // Include the User entity to get user details for each post
-				.Include(p => p.Likes) // Include Likes to get like counts and user likes
-				.Include(p => p.Comments).ThenInclude(n => n.User) // Include Comments to get comments for each post
-				.Include(p => p.Favorites) // Include Favorites to get favorite counts
-				.Include(p => p.Reports) // Include Reports to get report counts
-				.OrderByDescending(p => p.CreatedAt) // Order posts by creation date, newest first
-				.ToListAsync();
-
+			var allPosts = await _postsService.GetAllPostsAsync(userId);
 			return View(allPosts);
 		}
 
@@ -40,38 +36,20 @@ namespace SocialApp.Controllers
 		public async Task<IActionResult> CreatePost ( PostVM post )
 		{
 			int userId = 1; // This should be replaced with the actual user ID from the authenticated user context
+			var imageUploadPath = await _filesService.UploadImageAsync(post.Image, ImageFileType.PostImage);
 
 			var newPost = new Post
 			{
 				Content = post.Content,
 				CreatedAt = DateTime.UtcNow,
 				UpdatedAt = DateTime.UtcNow,
-				ImageUrl = null, // Assuming no image is uploaded; handle image upload separately if needed
-				NrOfReports = 0, // Default value for new posts
+				ImageUrl = imageUploadPath,
+				NrOfReports = 0,
 				UserId = userId,
 			};
 
-			// Handle image upload if provided
-			if (post.Image != null && post.Image.Length > 0)
-			{
-				string rootPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
-				if (post.Image.ContentType.Contains("image"))
-				{
-					string rootPathImage = Path.Combine(rootPath, "images/posts");
-					Directory.CreateDirectory(rootPathImage); // Ensure the directory exists
-
-					string fileName = $"{Guid.NewGuid()}_{post.Image.FileName}";
-					string filePath = Path.Combine(rootPathImage, fileName);
-
-					using (var fileStream = new FileStream(filePath, FileMode.Create))
-						await post.Image.CopyToAsync(fileStream);
-
-					newPost.ImageUrl = $"/images/posts/{fileName}"; // Set the image URL for the post
-				}
-			}
-
-			_dbContext.Posts.Add(newPost);
-			await _dbContext.SaveChangesAsync();
+			await _postsService.CreatePostAsync(newPost);
+			await _hashtagsService.ProcessHashtagsForNewPostAsync(post.Content); // Add hashtags if any
 
 			return RedirectToAction("Index");
 		}
@@ -80,27 +58,7 @@ namespace SocialApp.Controllers
 		public async Task<IActionResult> TogglePostLike ( PostLikeVM postLikeVM )
 		{
 			int userId = 1; // This should be replaced with the actual user ID from the authenticated user context
-
-			var existingLike = await _dbContext.Likes
-				.FirstOrDefaultAsync(l => l.UserId == userId && l.PostId == postLikeVM.PostId);
-
-			if (existingLike != null)
-			{
-				// User has already liked the post, so we remove the like
-				_dbContext.Likes.Remove(existingLike);
-				await _dbContext.SaveChangesAsync();
-			}
-			else
-			{
-				// User has not liked the post, so we add a new like
-				var newLike = new Like
-				{
-					UserId = userId,
-					PostId = postLikeVM.PostId
-				};
-				await _dbContext.Likes.AddAsync(newLike);
-				await _dbContext.SaveChangesAsync();
-			}
+			await _postsService.TogglePostLikeAsynk(postLikeVM.PostId, userId);
 
 			return RedirectToAction("Index");
 		}
@@ -109,33 +67,22 @@ namespace SocialApp.Controllers
 		public async Task<IActionResult> AddPostComment ( PostCommentVM postCommentVM )
 		{
 			int userId = 1; // This should be replaced with the actual user ID from the authenticated user context
-
-			var newComment = new Comment
+			await _postsService.AddPostCommentAsync(new Comment
 			{
 				Content = postCommentVM.Content,
 				UserId = userId,
 				PostId = postCommentVM.PostId,
 				CreateAt = DateTime.UtcNow,
 				UpdateAt = DateTime.UtcNow
-			};
+			});
 
-			await _dbContext.Comments.AddAsync(newComment);
-			await _dbContext.SaveChangesAsync();
 			return RedirectToAction("Index");
 		}
 
 		[HttpPost]
 		public async Task<IActionResult> RemovePostComment ( RemoveCommentVM removeCommentVM )
 		{
-			var comment = await _dbContext.Comments
-				.FirstOrDefaultAsync(c => c.Id == removeCommentVM.CommentId);
-
-			if (comment != null)
-			{
-				_dbContext.Comments.Remove(comment);
-				await _dbContext.SaveChangesAsync();
-			}
-
+			await _postsService.RemovePostCommentAsync(removeCommentVM.CommentId);
 			return RedirectToAction("Index");
 		}
 
@@ -143,26 +90,7 @@ namespace SocialApp.Controllers
 		public async Task<IActionResult> TogglePostFavorite ( PostFavoriteVM postFavoriteVM )
 		{
 			int userId = 1; // This should be replaced with the actual user ID from the authenticated user context
-			var existingFavorite = await _dbContext.Favorites
-				.FirstOrDefaultAsync(f => f.UserId == userId && f.PostId == postFavoriteVM.PostId);
-
-			if (existingFavorite != null)
-			{
-				// User has already favorited the post, so we remove the favorite
-				_dbContext.Favorites.Remove(existingFavorite);
-				await _dbContext.SaveChangesAsync();
-			}
-			else
-			{
-				// User has not favorited the post, so we add a new favorite
-				var newFavorite = new Favorite
-				{
-					UserId = userId,
-					PostId = postFavoriteVM.PostId
-				};
-				await _dbContext.Favorites.AddAsync(newFavorite);
-				await _dbContext.SaveChangesAsync();
-			}
+			await _postsService.TogglePostFavoriteAsync(postFavoriteVM.PostId, userId);
 
 			return RedirectToAction("Index");
 		}
@@ -171,15 +99,8 @@ namespace SocialApp.Controllers
 		public async Task<IActionResult> TogglePostVisibility ( PostVisibilityVM postVisibilityVM )
 		{
 			int userId = 1; // This should be replaced with the actual user ID from the authenticated user context
+			await _postsService.TogglePostVisibilityAsync(postVisibilityVM.PostId, userId);
 
-			var post = await _dbContext.Posts
-				.FirstOrDefaultAsync(p => p.Id == postVisibilityVM.PostId && p.UserId == userId);
-			if (post != null)
-			{
-				post.IsPrivate = !post.IsPrivate; // Toggle the visibility
-				post.UpdatedAt = DateTime.UtcNow; // Update the timestamp
-				await _dbContext.SaveChangesAsync();
-			}
 			return RedirectToAction("Index");
 		}
 
@@ -187,31 +108,16 @@ namespace SocialApp.Controllers
 		public async Task<IActionResult> AddPostReport ( PostReportVM postReportVM )
 		{
 			int userId = 1; // This should be replaced with the actual user ID from the authenticated user context
+			await _postsService.ReportPostAsync(postReportVM.PostId, userId);
 
-			var newReport = new Report
-			{
-				UserId = userId,
-				PostId = postReportVM.PostId,
-				CreatedAt = DateTime.UtcNow,
-			};
-
-			await _dbContext.Reports.AddAsync(newReport);
-			await _dbContext.SaveChangesAsync();
 			return RedirectToAction("Index");
 		}
 
 		[HttpPost]
 		public async Task<IActionResult> PostRemove ( RemovePostVM removePostVM )
 		{
-			int userId = 1; // This should be replaced with the actual user ID from the authenticated user context
-			var post = await _dbContext.Posts
-				.FirstOrDefaultAsync(p => p.Id == removePostVM.PostId && p.UserId == userId);
-			if (post != null)
-			{
-				post.IsDeleted = true; // Soft delete the post
-				_dbContext.Posts.Remove(post);
-				await _dbContext.SaveChangesAsync();
-			}
+			var postRemove = await _postsService.RemovePostAsync(removePostVM.PostId);
+			await _hashtagsService.ProcessHashtagsForRemovedPostAsync(postRemove.Content); // Remove hashtags if any
 			return RedirectToAction("Index");
 		}
 	}

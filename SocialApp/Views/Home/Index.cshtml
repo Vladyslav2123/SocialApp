@@ -4,7 +4,7 @@
     <div class="lg:flex 2xl:gap-16 gap-12 max-w-[1065px] mx-auto" id="js-oversized">
         <div class="max-w-[680px] mx-auto">
 
-              @await Component.InvokeAsync("Stories")
+            @await Component.InvokeAsync("Stories")
 
             <div class="md:max-w-[580px] mx-auto flex-1 xl:space-y-6 space-y-3">
 
@@ -38,7 +38,9 @@
                     {
                         @foreach (var post in Model)
                         {
-                            <partial name="Home/_Post" model="post" />
+                            <partial name="Home/_Post"
+                                     model="post"
+                                     view-data='new ViewDataDictionary(ViewData) { { "ShowAllComment", false } }' />
                         }
                     }
                 </div>
@@ -65,14 +67,77 @@
 
 <script>
     function openPostDeleteConfirmation(postId) {
-
-        UIKit.dropdown('.post-options-dropdown').hide();
+        UIkit.dropdown('.post-options-dropdown').hide();
         document.getElementById('deleteConfirmationPostId').value = postId;
-        UIKit.modal('#postDeleteDialog').show();
-        // Logic to open a confirmation dialog for deleting the post
-        // This can be a custom modal or a simple alert
-        if (confirm("Are you sure you want to delete this post?")) {
-            document.querySelector(`form[action='/Home/DeletePost'][data-post-id='${postId}']`).submit();
-        }
+        UIkit.modal('#postDeleteDialog').show();
     }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        document.getElementById('posts-container').addEventListener('click', function () {
+
+            const button = event.target.closest('.like-button, .favorite-button')
+            if (button) {
+                event.preventDefault();
+
+                var form = button.closest('form');
+                var postId = form.querySelector('input[name="postId"]').value;
+                var postContainer = document.getElementById('post-' + postId);
+
+                fetch(form.action, {
+                    method: 'POST',
+                    body: new FormData(form),
+                    headers: {}
+                })
+                    .then(response => response.text())
+                    .then(html => {
+                        postContainer.innerHTML = html;
+                    })
+                    .catch(error => console.error('Error: ', error));
+            }
+        });
+
+        document.getElementById('posts-container').addEventListener('submit', function () {
+            var form = event.target;
+
+            if (form.classList.contains('add-comment-form')) {
+                event.preventDefault();
+
+                var postId = form.querySelector('input[name="postId"]').value;
+                var postContainer = document.getElementById('post-' + postId);
+
+                fetch(form.action, {
+                    method: 'POST',
+                    body: new FormData(form),
+                    headers: {}
+                })
+                    .then(response => response.text())
+                    .then(html => {
+                        postContainer.innerHTML = html;
+                    })
+                    .catch(error => console.error('Error: ', error));
+            }
+
+            if (form.classList.contains('remove-comment-form')) {
+                event.preventDefault();
+
+                var postId = form.querySelector('input[name="postId"]').value;
+                var commentId = form.querySelector('input[name="commentId"]').value;
+
+                var postContainer = document.getElementById('post-' + postId);
+
+                fetch(form.action, {
+                    method: 'POST',
+                    body: new FormData(form),
+                    headers: {}
+                })
+                    .then(response => response.text())
+                    .then(html => {
+                        postContainer.innerHTML = html;
+                    })
+                    .catch(error => console.error('Error: ', error));
+
+            }
+        })
+    })
+
 </script>

@@ -41,6 +41,18 @@ public class PostsService : IPostsService
 		return allPosts;
 	}
 
+	public async Task<Post> GetPostByIdAsync ( int postId )
+	{
+		var post = await _context.Posts
+		.Include(p => p.User)
+		.Include(p => p.Likes)
+		.Include(p => p.Favorites)
+		.Include(p => p.Comments).ThenInclude(n => n.User)
+		.FirstOrDefaultAsync(p => p.Id == postId);
+
+		return post;
+	}
+
 	public async Task<List<Post>> GetAllFavoritedPostsAsync ( int loggedInUserId )
 	{
 		return await _context.Favorites

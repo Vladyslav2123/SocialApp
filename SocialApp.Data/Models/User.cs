@@ -1,8 +1,9 @@
-﻿namespace SocialApp.Data.Models;
+﻿using Microsoft.AspNetCore.Identity;
 
-public class User
+namespace SocialApp.Data.Models;
+
+public class User : IdentityUser<int>
 {
-	public int Id { get; set; }
 	public string FullName { get; set; } = string.Empty;
 	public string? ProfilePictureUrl { get; set; } = null;
 	public bool IsDeleted { get; set; } = false;

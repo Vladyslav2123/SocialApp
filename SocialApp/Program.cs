@@ -1,6 +1,8 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SocialApp.Data;
 using SocialApp.Data.Helpers;
+using SocialApp.Data.Models;
 using SocialApp.Data.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -20,6 +22,14 @@ builder.Services.AddScoped<IStoriesService, StoriesService>();
 builder.Services.AddScoped<IFilesService, FilesService>();
 builder.Services.AddScoped<IUsersService, UsersService>();
 
+//Identity configuration (if needed)
+builder.Services.AddIdentity<User, IdentityRole<int>>()
+	.AddEntityFrameworkStores<AppDbContext>()
+	.AddDefaultTokenProviders();
+
+builder.Services.AddAuthentication();
+builder.Services.AddAuthorization();
+
 var app = builder.Build();
 
 // Seed the database with initial data if needed
@@ -29,6 +39,11 @@ using (var scope = app.Services.CreateScope())
 
 	await dbContext.Database.MigrateAsync();
 	await DbInitializer.SeedAsync(dbContext);
+
+	var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
+	var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<int>>>();
+	await DbInitializer.SeedUsersAndRolesAsync(userManager, roleManager);
+
 	if (dbContext.Database.EnsureCreated())
 	{
 		// Database was created, you can seed initial data here if needed
@@ -54,6 +69,7 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllerRoute(

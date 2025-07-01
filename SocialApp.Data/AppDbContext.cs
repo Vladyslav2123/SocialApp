@@ -1,9 +1,11 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using SocialApp.Data.Models;
 
 namespace SocialApp.Data;
 
-public class AppDbContext : DbContext
+public class AppDbContext : IdentityDbContext<User, IdentityRole<int>, int>
 {
 	public AppDbContext ( DbContextOptions<AppDbContext> options ) : base(options) { }
 
@@ -90,5 +92,14 @@ public class AppDbContext : DbContext
 			.OnDelete(DeleteBehavior.NoAction);
 
 		base.OnModelCreating(modelBuilder);
+
+		//Customize the ASP.NET Identity model and override the defaults if needed.
+		modelBuilder.Entity<User>().ToTable("Users");
+		modelBuilder.Entity<IdentityRole<int>>().ToTable("Roles");
+		modelBuilder.Entity<IdentityUserRole<int>>().ToTable("UserRoles");
+		modelBuilder.Entity<IdentityUserClaim<int>>().ToTable("UserClaims");
+		modelBuilder.Entity<IdentityUserLogin<int>>().ToTable("UserLogins");
+		modelBuilder.Entity<IdentityRoleClaim<int>>().ToTable("RoleClaims");
+		modelBuilder.Entity<IdentityUserToken<int>>().ToTable("UserTokens");
 	}
 }

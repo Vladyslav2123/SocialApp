@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using SocialApp.Data.Helpers.Enums;
 using SocialApp.Data.Models;
 using SocialApp.Data.Services;
@@ -6,6 +7,7 @@ using SocialApp.ViewModels.Stories;
 
 namespace SocialApp.Controllers;
 
+[Authorize]
 public class StoriesController : Controller
 {
 	private readonly IStoriesService _storiesService;

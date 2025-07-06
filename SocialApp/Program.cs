@@ -36,7 +36,23 @@ builder.Services.AddIdentity<User, IdentityRole<int>>(options =>
 	.AddEntityFrameworkStores<AppDbContext>()
 	.AddDefaultTokenProviders();
 
-builder.Services.AddAuthentication();
+builder.Services.ConfigureApplicationCookie(options =>
+{
+	options.LoginPath = "/Authentication/Login";
+	options.LogoutPath = "/Authentication/Logout";
+	options.AccessDeniedPath = "/Authentication/AccessDenied";
+});
+
+//builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+//	.AddCookie(options =>
+//	{
+//		options.LoginPath = "/Authentication/Login"; // Path to the login page
+//		options.AccessDeniedPath = "/Authentication/AccessDenied"; // Path to the access denied page
+//		options.LogoutPath = "/Authentication/Logout"; // Path to the logout page
+//		options.ExpireTimeSpan = TimeSpan.FromMinutes(60); // Set cookie expiration time
+//		options.SlidingExpiration = true; // Enable sliding expiration
+//	});
+
 builder.Services.AddAuthorization();
 
 var app = builder.Build();

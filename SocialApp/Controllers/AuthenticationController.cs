@@ -1,8 +1,10 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using SocialApp.Data.Helpers.Constants;
 using SocialApp.Data.Models;
 using SocialApp.ViewModels.Authentication;
+using System.Security.Claims;
 
 namespace SocialApp.Controllers;
 
@@ -33,7 +35,12 @@ public class AuthenticationController : Controller
 		}
 
 		var user = await _userManager.FindByEmailAsync(loginVM.Email);
+		var existingUserClaims = await _userManager.GetClaimsAsync(user);
 
+		if (existingUserClaims.Any(c => c.Type == CustomClaim.FullName))
+		{
+			await _userManager.AddClaimAsync(user, new Claim(CustomClaim.FullName, user.FullName));
+		}
 		if (user == null)
 		{
 			ModelState.AddModelError(string.Empty, "Invalid login attempt.");
@@ -86,6 +93,9 @@ public class AuthenticationController : Controller
 		if (result.Succeeded)
 		{
 			await _userManager.AddToRoleAsync(user, AppRoles.User);
+
+			await _userManager.AddClaimAsync(user, new Claim(CustomClaim.FullName, user.FullName));
+
 			await _signInManager.SignInAsync(user, isPersistent: false);
 			return RedirectToAction("Index", "Home");
 		}
@@ -97,5 +107,12 @@ public class AuthenticationController : Controller
 		}
 
 		return View(registerVM);
+	}
+
+	[Authorize]
+	public async Task<IActionResult> Logout ()
+	{
+		await _signInManager.SignOutAsync();
+		return RedirectToAction("Login");
 	}
 }

@@ -1,10 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using SocialApp.Data.Helpers.Enums;
 using SocialApp.Data.Services;
 using SocialApp.ViewModels.Settings;
 
 namespace SocialApp.Controllers;
 
+[Authorize]
 public class SettingsController : Controller
 {
 	private readonly IUsersService _userService;

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using SocialApp.Data.Helpers.Constants;
 using SocialApp.Data.Models;
 using SocialApp.ViewModels.Authentication;
+using SocialApp.ViewModels.Settings;
 using System.Security.Claims;
 
 namespace SocialApp.Controllers;
@@ -41,13 +42,14 @@ public class AuthenticationController : Controller
 		{
 			await _userManager.AddClaimAsync(user, new Claim(CustomClaim.FullName, user.FullName));
 		}
+
 		if (user == null)
 		{
 			ModelState.AddModelError(string.Empty, "Invalid login attempt.");
 			return View(loginVM);
 		}
 
-		var result = await _signInManager.PasswordSignInAsync(user, loginVM.Password, isPersistent: false, lockoutOnFailure: false);
+		var result = await _signInManager.PasswordSignInAsync(user.UserName, loginVM.Password, isPersistent: false, lockoutOnFailure: false);
 
 		if (result.Succeeded)
 		{
@@ -114,5 +116,63 @@ public class AuthenticationController : Controller
 	{
 		await _signInManager.SignOutAsync();
 		return RedirectToAction("Login");
+	}
+
+	[HttpPost]
+	public async Task<IActionResult> UpdatePassword ( UpdatePasswordVM passwordVM )
+	{
+		if (passwordVM.NewPassword != passwordVM.ConfirmPassword)
+		{
+			TempData ["PasswordError"] = "New password and confirm password do not match.";
+			TempData ["ActiveTab"] = "Password";
+			return RedirectToAction("Index", "Settings");
+		}
+
+		var loggedInUser = await _userManager.GetUserAsync(User);
+
+		var isCurrentPasswordValid = await _userManager.CheckPasswordAsync(loggedInUser, passwordVM.CurrentPassword);
+
+		if (!isCurrentPasswordValid)
+		{
+			TempData ["PasswordError"] = "Current password is incorrect.";
+			TempData ["ActiveTab"] = "Password";
+			return RedirectToAction("Index", "Settings");
+		}
+
+		var result = await _userManager.ChangePasswordAsync(loggedInUser, passwordVM.CurrentPassword, passwordVM.NewPassword);
+
+		if (result.Succeeded)
+		{
+			TempData ["PasswordSuccess"] = "Password updated successfully.";
+			TempData ["ActiveTab"] = "Password";
+			await _signInManager.RefreshSignInAsync(loggedInUser);
+		}
+
+		return RedirectToAction("Index", "Settings");
+	}
+
+	[HttpPost]
+	public async Task<IActionResult> UpdateProfile ( UpdateProfileVM profileVM )
+	{
+		var user = await _userManager.GetUserAsync(User);
+		if (user == null)
+		{
+			return RedirectToAction("Login");
+		}
+
+		user.FullName = profileVM.FullName;
+		user.UserName = profileVM.UserName;
+		user.Bio = profileVM.Bio;
+
+		// Update the user's claims if necessary
+		var result = await _userManager.UpdateAsync(user);
+		if (!result.Succeeded)
+		{
+			TempData ["UserProfileError"] = "Failed to update profile. Please try again.";
+			TempData ["ActiveTab"] = "Profile";
+		}
+
+		await _signInManager.RefreshSignInAsync(user);
+		return RedirectToAction("Index", "Settings");
 	}
 }

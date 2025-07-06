@@ -6,6 +6,7 @@ public class User : IdentityUser<int>
 {
 	public string FullName { get; set; } = string.Empty;
 	public string? ProfilePictureUrl { get; set; } = null;
+	public string? Bio { get; set; } = string.Empty;
 	public bool IsDeleted { get; set; } = false;
 
 	// Navigation properties

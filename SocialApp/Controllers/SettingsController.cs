@@ -35,18 +35,4 @@ public class SettingsController : Controller
 		await _userService.UpdateUserProfilePicture(loggedInUserId, uploadedProfilePictureUrl);
 		return RedirectToAction("Index");
 	}
-
-	[HttpPost]
-	public async Task<IActionResult> UpdateProfile ( UpdateProfileVM profileVM )
-	{
-
-		return RedirectToAction("Index");
-	}
-
-	[HttpPost]
-	public async Task<IActionResult> UpdatePassword ( UpdatePasswordVM passwordVM )
-	{
-
-		return RedirectToAction("Index");
-	}
 }

@@ -23,6 +23,35 @@ public class AuthenticationController : Controller
 		return View();
 	}
 
+	[HttpPost]
+	public async Task<IActionResult> Login ( LoginVM loginVM )
+	{
+
+		if (!ModelState.IsValid)
+		{
+			return View(loginVM);
+		}
+
+		var user = await _userManager.FindByEmailAsync(loginVM.Email);
+
+		if (user == null)
+		{
+			ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+			return View(loginVM);
+		}
+
+		var result = await _signInManager.PasswordSignInAsync(user, loginVM.Password, isPersistent: false, lockoutOnFailure: false);
+
+		if (result.Succeeded)
+		{
+			return RedirectToAction("Index", "Home");
+		}
+
+		ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+		return View(loginVM);
+	}
+
+
 	public async Task<IActionResult> Register ()
 	{
 		return View();
@@ -31,6 +60,12 @@ public class AuthenticationController : Controller
 	[HttpPost]
 	public async Task<IActionResult> Register ( RegisterVM registerVM )
 	{
+		if (!ModelState.IsValid)
+		{
+			return View(registerVM);
+		}
+
+		// Create a new user instance
 		var user = new User
 		{
 			UserName = registerVM.Email,
@@ -38,6 +73,15 @@ public class AuthenticationController : Controller
 			FullName = $"{registerVM.FirstName} {registerVM.LastName}"
 		};
 
+		// Check if the email is already registered
+		var existingUser = await _userManager.FindByEmailAsync(registerVM.Email);
+		if (existingUser != null)
+		{
+			ModelState.AddModelError(string.Empty, "Email is already registered.");
+			return View(registerVM);
+		}
+
+		// Create the user with the provided password
 		var result = await _userManager.CreateAsync(user, registerVM.Password);
 		if (result.Succeeded)
 		{
@@ -46,6 +90,12 @@ public class AuthenticationController : Controller
 			return RedirectToAction("Index", "Home");
 		}
 
-		return View();
+		// If creation failed, add errors to the model state
+		foreach (var error in result.Errors)
+		{
+			ModelState.AddModelError(string.Empty, error.Description);
+		}
+
+		return View(registerVM);
 	}
 }
